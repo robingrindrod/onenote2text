@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import json
-import requests
 from requests_oauthlib import OAuth2Session
 from oauthlib.oauth2 import MobileApplicationClient
 
-API_ROOT_URL = 'https://www.onenote.com/api/v1.0/me/notes'
+import onenote_api as api
 
 # OAuth data
 CLIENT_ID = '54278304-2b46-485f-9997-7bf3f89e7ca0'
@@ -33,20 +31,10 @@ def get_authenticated_session():
     get_token_from_user(authorization_url, session)
     return session
 
-def get_notebooks(session):
-    return get_object(session, API_ROOT_URL + '/notebooks')
-
-def get_sections(session, notebook_id):
-    return get_object(session, API_ROOT_URL + '/notebooks/' + notebook_id + '/sections')
-
-def get_object(session, url):
-    params = {'select': 'id,name'}
-    response = session.get(url, params=params)
-    return json.loads(response.text)['value']
 
 session = get_authenticated_session()
-notebooks = get_notebooks(session)
+notebooks = api.get_notebooks(session)
 notebook = get_notebook_from_user(notebooks)
-sections = get_sections(session, notebook['id'])
+sections = api.get_sections(session, notebook['id'])
 for section in sections:
     print(section['name'])
