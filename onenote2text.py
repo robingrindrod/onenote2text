@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os, sys
+
 from requests_oauthlib import OAuth2Session
 from oauthlib.oauth2 import MobileApplicationClient
 
@@ -31,10 +33,29 @@ def get_authenticated_session():
     get_token_from_user(authorization_url, session)
     return session
 
+def create_directories_for_sections(session, directory, **kwargs):
+    section_groups = api.get_section_groups(session, **kwargs)
+    for section_group in section_groups:
+        path = os.path.join(directory, section_group['name'])
+        os.mkdir(path)
+        create_directories_for_sections(path, section_group_id=section_group['id'])
 
+    sections = api.get_sections(session, **kwargs)
+    for section in sections:
+        path = os.path.join(directory, section['name'])
+        os.mkdir(path)
+        create_files_for_pages(session, path, section_id=section['id'])
+
+def create_files_for_pages(session, directory, section_id):
+    pages = api.get_pages(session, section_id)
+    for page in pages:
+        content = api.get_page_content(session, page['id'])
+        path = os.path.join(directory, page['title'])
+        with open(path, 'w') as file:
+            file.write(content)
+
+directory = sys.argv[1]
 session = get_authenticated_session()
 notebooks = api.get_notebooks(session)
 notebook = get_notebook_from_user(notebooks)
-sections = api.get_sections(session, notebook['id'])
-for section in sections:
-    print(section['name'])
+create_directories_for_sections(session, directory, notebook_id=notebook['id'])
