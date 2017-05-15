@@ -5,6 +5,7 @@ import os, sys
 
 from requests_oauthlib import OAuth2Session
 from oauthlib.oauth2 import MobileApplicationClient
+import html2text
 
 import onenote_api as api
 
@@ -50,9 +51,10 @@ def create_files_for_pages(session, directory, section_id):
     pages = api.get_pages(session, section_id)
     for page in pages:
         content = api.get_page_content(session, page['id'])
-        path = os.path.join(directory, page['title'])
+        text = html2text.html2text(content)
+        path = os.path.join(directory, page['title'] + '.md')
         with open(path, 'w') as file:
-            file.write(content)
+            file.write(text)
 
 directory = sys.argv[1]
 session = get_authenticated_session()
